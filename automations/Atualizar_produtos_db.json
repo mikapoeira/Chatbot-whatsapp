@@ -1,0 +1,159 @@
+{
+  "name": "My workflow",
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "7038d993-7d5e-4055-8821-623616789e99",
+      "name": "Ao Clicar (Teste)",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        -464,
+        -32
+      ]
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "hours",
+              "hoursInterval": 24
+            }
+          ]
+        }
+      },
+      "id": "5125315d-8ae6-49b4-aaa0-20689aa3d266",
+      "name": "Todo Dia (Produção)",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        -464,
+        176
+      ],
+      "disabled": true,
+      "notes": "Ative este gatilho apenas em produção"
+    },
+    {
+      "parameters": {
+        "operation": "getAll",
+        "limit": 100,
+        "options": {}
+      },
+      "id": "9fbe6069-ab7d-4662-aa3e-ade165c27e6e",
+      "name": "WooCommerce Cliente",
+      "type": "n8n-nodes-base.wooCommerce",
+      "typeVersion": 1,
+      "position": [
+        -224,
+        80
+      ],
+      "notes": "Configure a Credencial do Cliente aqui"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Padroniza o JSON para o formato que o Bot Python entende\nreturn items.map(item => {\n  const p = item.json;\n  \n  // Remove HTML da descrição\n  let desc = p.short_description || p.description || \"\";\n  desc = desc.replace(/<[^>]*>?/gm, '');\n\n  return {\n    json: {\n      nome: p.name,\n      preco: `R$ ${p.price}`,\n      descricao: desc\n    }\n  }\n});"
+      },
+      "id": "1db75a7d-8b31-466a-bdc8-2c0e52080972",
+      "name": "Formatar Dados",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        0,
+        80
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://host.docker.internal:5000/api/sync/produtos",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "X-Admin-Token",
+              "value": "senha_segura_n8n"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "data",
+              "value": "={{ $json }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "94daf1d1-6e1e-45a0-b5c0-2ffa5eda4770",
+      "name": "Enviar para Bot",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [
+        224,
+        80
+      ],
+      "notes": "host.docker.internal conecta no bot rodando no mesmo PC"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Ao Clicar (Teste)": {
+      "main": [
+        [
+          {
+            "node": "WooCommerce Cliente",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Todo Dia (Produção)": {
+      "main": [
+        [
+          {
+            "node": "WooCommerce Cliente",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "WooCommerce Cliente": {
+      "main": [
+        [
+          {
+            "node": "Formatar Dados",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Formatar Dados": {
+      "main": [
+        [
+          {
+            "node": "Enviar para Bot",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "fe497be8-d73a-4bb5-8f1c-1f9d50a48b64",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "04001bbef639f1ff8630185d16cda086cdac3c5dbc7c0fa4598e97461cb2d051"
+  },
+  "id": "8pgUrpTgiKVJP7l5",
+  "tags": []
+}
