@@ -3,11 +3,11 @@ from sqlalchemy.dialects.postgresql import JSONB
 from datetime import datetime
 import time
 
-# AQUI ESTÁ O SEGREDO: Nós criamos o db aqui, não importamos.
+# Inicializamos o objeto db aqui (sem import circular)
 db = SQLAlchemy()
 
 # ----------------------------------------------------------------
-# TABELA 1: CONFIGURAÇÕES DO BOT (Prompt Dinâmico)
+# TABELA 1: CONFIGURAÇÃO DO BOT (Prompt e Personalidade)
 # ----------------------------------------------------------------
 class BotConfig(db.Model):
     __tablename__ = 'bot_configs'
@@ -15,11 +15,15 @@ class BotConfig(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     nome_bot = db.Column(db.String(50), default="Assistente")
     nome_empresa = db.Column(db.String(100), default="Minha Empresa")
-    personalidade = db.Column(db.Text, default="Seja formal e educado.")
+    
+    # Aqui fica o texto gigante que veio do system_prompt.txt
+    personalidade = db.Column(db.Text, nullable=False)
+    
+    # Campo extra opcional se quiser separar regras de negócio
     regras_negocio = db.Column(db.Text, default="") 
 
 # ----------------------------------------------------------------
-# TABELA 2: CLIENTES
+# TABELA 2: CLIENTES (Quem manda mensagem)
 # ----------------------------------------------------------------
 class Cliente(db.Model):
     __tablename__ = 'clientes'
@@ -28,11 +32,24 @@ class Cliente(db.Model):
     telefone = db.Column(db.String(50), unique=True, nullable=False)
     nome = db.Column(db.String(100), nullable=True)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
-    last_seen = db.Column(db.DateTime, default=datetime.utcnow)
+    
+    # Relacionamento para pegar as mensagens desse cliente
     mensagens = db.relationship('Mensagem', backref='cliente', lazy=True)
 
 # ----------------------------------------------------------------
-# TABELA 3: PRODUTOS
+# TABELA 3: MENSAGENS (Histórico)
+# ----------------------------------------------------------------
+class Mensagem(db.Model):
+    __tablename__ = 'mensagens'
+
+    id = db.Column(db.Integer, primary_key=True)
+    cliente_id = db.Column(db.Integer, db.ForeignKey('clientes.id'), nullable=False)
+    role = db.Column(db.String(20), nullable=False) # 'user' ou 'model'
+    conteudo = db.Column(db.Text, nullable=False)
+    timestamp = db.Column(db.DateTime, default=datetime.utcnow)
+
+# ----------------------------------------------------------------
+# TABELA 4: PRODUTOS (Catálogo)
 # ----------------------------------------------------------------
 class Produto(db.Model):
     __tablename__ = 'produtos'
@@ -42,23 +59,3 @@ class Produto(db.Model):
     descricao = db.Column(db.Text, nullable=False)
     preco = db.Column(db.String(50), nullable=True)
     ativo = db.Column(db.Boolean, default=True)
-
-# ----------------------------------------------------------------
-# TABELA 4: SESSÃO/MENSAGENS
-# ----------------------------------------------------------------
-class SessaoChat(db.Model):
-    # Tabela simplificada para guardar sessão em memória se preferir,
-    # ou podemos usar a tabela de Mensagens para reconstruir o histórico.
-    __tablename__ = 'sessoes'
-    telefone = db.Column(db.String(50), primary_key=True)
-    historico = db.Column(JSONB, default=list)
-    last_seen = db.Column(db.Float, default=time.time)
-
-class Mensagem(db.Model):
-    __tablename__ = 'mensagens'
-
-    id = db.Column(db.Integer, primary_key=True)
-    cliente_id = db.Column(db.Integer, db.ForeignKey('clientes.id'), nullable=False)
-    role = db.Column(db.String(20), nullable=False)
-    conteudo = db.Column(db.Text, nullable=False)
-    timestamp = db.Column(db.DateTime, default=datetime.utcnow)
