@@ -3,13 +3,13 @@
   "nodes": [
     {
       "parameters": {},
-      "id": "7038d993-7d5e-4055-8821-623616789e99",
+      "id": "b570c3ae-3cf3-4195-bfdc-b13cc962e210",
       "name": "Ao Clicar (Teste)",
       "type": "n8n-nodes-base.manualTrigger",
       "typeVersion": 1,
       "position": [
-        -464,
-        -32
+        160,
+        160
       ]
     },
     {
@@ -23,13 +23,13 @@
           ]
         }
       },
-      "id": "5125315d-8ae6-49b4-aaa0-20689aa3d266",
+      "id": "02536eec-8c01-4b60-8e61-df138aeee2ab",
       "name": "Todo Dia (Produção)",
       "type": "n8n-nodes-base.scheduleTrigger",
       "typeVersion": 1.1,
       "position": [
-        -464,
-        176
+        160,
+        368
       ],
       "disabled": true,
       "notes": "Ative este gatilho apenas em produção"
@@ -40,27 +40,33 @@
         "limit": 100,
         "options": {}
       },
-      "id": "9fbe6069-ab7d-4662-aa3e-ade165c27e6e",
+      "id": "a2544dfc-5f22-48df-9e35-1d2560743842",
       "name": "WooCommerce Cliente",
       "type": "n8n-nodes-base.wooCommerce",
       "typeVersion": 1,
       "position": [
-        -224,
-        80
+        400,
+        272
       ],
+      "credentials": {
+        "wooCommerceApi": {
+          "id": "rryiv3bQmIvzvCXx",
+          "name": "WooCommerce account"
+        }
+      },
       "notes": "Configure a Credencial do Cliente aqui"
     },
     {
       "parameters": {
         "jsCode": "// Padroniza o JSON para o formato que o Bot Python entende\nreturn items.map(item => {\n  const p = item.json;\n  \n  // Remove HTML da descrição\n  let desc = p.short_description || p.description || \"\";\n  desc = desc.replace(/<[^>]*>?/gm, '');\n\n  return {\n    json: {\n      nome: p.name,\n      preco: `R$ ${p.price}`,\n      descricao: desc\n    }\n  }\n});"
       },
-      "id": "1db75a7d-8b31-466a-bdc8-2c0e52080972",
+      "id": "9f7e5b9c-00b0-4145-ac3b-b978de66b7f4",
       "name": "Formatar Dados",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        0,
-        80
+        624,
+        272
       ]
     },
     {
@@ -77,24 +83,19 @@
           ]
         },
         "sendBody": true,
-        "bodyParameters": {
-          "parameters": [
-            {
-              "name": "data",
-              "value": "={{ $json }}"
-            }
-          ]
-        },
+        "specifyBody": "json",
+        "jsonBody": "={{ $('Formatar Dados').all().map(i => i.json) }}",
         "options": {}
       },
-      "id": "94daf1d1-6e1e-45a0-b5c0-2ffa5eda4770",
+      "id": "f36df037-fa8e-4a79-88e9-eed50c225194",
       "name": "Enviar para Bot",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.1,
       "position": [
-        224,
-        80
+        848,
+        272
       ],
+      "executeOnce": true,
       "notes": "host.docker.internal conecta no bot rodando no mesmo PC"
     }
   ],
