@@ -15,7 +15,6 @@ services:
       - COMPANY_NAME=${COMPANY_NAME}
       - ADMIN_SECRET_TOKEN=${ADMIN_SECRET_TOKEN}
       - ENABLE_EXTERNAL_SYNC=${ENABLE_EXTERNAL_SYNC}
-      # --- ADICIONE ISTO AQUI EMBAIXO ---
       - ADMIN_USER=${ADMIN_USER}
       - TWILIO_ACCOUNT_SID=${TWILIO_ACCOUNT_SID}
       - TWILIO_AUTH_TOKEN=${TWILIO_AUTH_TOKEN}
@@ -39,5 +38,27 @@ services:
       timeout: 5s
       retries: 5
 
+  # --- O NOVO INTEGRANTE ---
+  n8n:
+    image: docker.n8n.io/n8nio/n8n
+    container_name: ${PROJECT_NAME}_n8n
+    restart: always
+    ports:
+      - "5678:5678"
+    environment:
+      - N8N_HOST=0.0.0.0
+      - N8N_PORT=5678
+      - N8N_PROTOCOL=http
+      - WEBHOOK_URL=http://72.60.55.129:5678/
+      - N8N_EDITOR_BASE_URL=http://72.60.55.129:5678/
+      # Variáveis pra evitar aquele bug da tela branca/Service Worker
+      - N8N_COMPRESS_RESPONSE=false
+      - N8N_DISABLE_PRODUCTION_MAIN_PROCESS=true
+      - GENERIC_TIMEZONE=America/Sao_Paulo
+      - TZ=America/Sao_Paulo
+    volumes:
+      - n8n_data_integrated:/home/node/.n8n
+
 volumes:
   postgres_data:
+  n8n_data_integrated: # Volume novo pra garantir config limpa
