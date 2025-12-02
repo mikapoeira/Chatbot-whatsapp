@@ -1,0 +1,114 @@
+{% extends 'layout.html' %}
+
+{% block body %}
+<div class="flex h-[85vh] bg-white rounded shadow overflow-hidden">
+    <!-- Lista Lateral -->
+    <div class="w-1/3 border-r overflow-y-auto">
+        <div class="p-4 bg-gray-100 font-bold border-b">Clientes</div>
+        {% for cliente in clientes %}
+        <div onclick="abrirChat"('{{ cliente.id }}', '{{ cliente.telefone }}', '{{ cliente.modo }}')" 
+             class="p-4 border-b hover:bg-gray-50 cursor-pointer flex justify-between">
+            <div>
+                <i class="fab fa-whatsapp text-green-500"></i> {{ cliente.telefone }}
+            </div>
+            <span id="badge-{{ cliente.id }}" class="text-xs px-2 py-1 rounded {{ 'bg-red-100 text-red-800' if cliente.modo == 'humano' else 'bg-green-100 text-green-800' }}">
+                {{ cliente.modo }}
+            </span>
+        </div>
+        {% endfor %}
+    </div>
+
+    <!-- Área de Chat -->
+    <div class="w-2/3 flex flex-col">
+        <div class="p-4 border-b flex justify-between items-center bg-gray-50">
+            <h2 id="chat-title" class="font-bold text-lg">Selecione um cliente</h2>
+            <div id="controles" class="hidden">
+                <button onclick="mudarModo('humano')" class="bg-orange-500 text-white px-3 py-1 rounded text-sm mr-2 hover:bg-orange-600">
+                    <i class="fas fa-user-shield"></i> Assumir
+                </button>
+                <button onclick="mudarModo('bot')" class="bg-green-600 text-white px-3 py-1 rounded text-sm hover:bg-green-700">
+                    <i class="fas fa-robot"></i> Devolver p/ IA
+                </button>
+            </div>
+        </div>
+
+        <div id="chat-box" class="flex-1 p-4 overflow-y-auto bg-gray-100 space-y-3">
+            <!-- Mensagens aqui -->
+        </div>
+
+        <div class="p-4 border-t bg-white flex">
+            <input type="text" id="msg-input" class="flex-1 border rounded p-2 mr-2" placeholder="Digite sua resposta...">
+            <button onclick="enviarMsg()" class="bg-blue-600 text-white px-6 rounded hover:bg-blue-700">Enviar</button>
+        </div>
+    </div>
+</div>
+
+<script>
+let clienteAtual = null;
+
+async function abrirChat(id, tel, modo) {
+    clienteAtual = id;
+    document.getElementById('chat-title').innerText = tel;
+    document.getElementById('controles').classList.remove('hidden');
+    carregarMsgs();
+}
+
+async function carregarMsgs() {
+    if(!clienteAtual) return;
+    const res = await fetch(`/api/chat/${clienteAtual}`);
+    const msgs = await res.json();
+    
+    const box = document.getElementById('chat-box');
+    box.innerHTML = '';
+    
+    msgs.forEach(m => {
+        let align = m.role === 'user' ? 'justify-start' : 'justify-end';
+        let bg = m.role === 'user' ? 'bg-white' : (m.role === 'human' ? 'bg-blue-100' : 'bg-green-100');
+        let icon = m.role === 'user' ? '' : (m.role === 'human' ? '👨‍💻' : '🤖');
+        
+        box.innerHTML += `
+            <div class="flex ${align}">
+                <div class="${bg} p-3 rounded-lg shadow max-w-lg text-sm">
+                    <div class="font-bold text-xs text-gray-500 mb-1">${icon} ${m.role} <span class="float-right font-normal ml-2">${m.time}</span></div>
+                    ${m.conteudo}
+                </div>
+            </div>`;
+    });
+    box.scrollTop = box.scrollHeight;
+}
+
+async function enviarMsg() {
+    const txt = document.getElementById('msg-input').value;
+    if(!txt || !clienteAtual) return;
+    
+    await fetch('/api/send_human', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({cliente_id: clienteAtual, texto: txt})
+    });
+    
+    document.getElementById('msg-input').value = '';
+    carregarMsgs();
+    atualizarBadge('humano');
+}
+
+async function mudarModo(modo) {
+    await fetch(`/api/toggle_mode/${clienteAtual}`, {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({modo: modo})
+    });
+    atualizarBadge(modo);
+    alert('Modo alterado para: ' + modo);
+}
+
+function atualizarBadge(modo) {
+    const badge = document.getElementById(`badge-${clienteAtual}`);
+    badge.innerText = modo;
+    badge.className = `text-xs px-2 py-1 rounded ${modo === 'humano' ? 'bg-red-100 text-red-800' : 'bg-green-100 text-green-800'}`;
+}
+
+// Auto-refresh a cada 3s
+setInterval(() => { if(clienteAtual) carregarMsgs(); }, 3000);
+</script>
+{% endblock %}

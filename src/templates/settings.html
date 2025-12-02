@@ -1,0 +1,22 @@
+{% extends 'layout.html' %}
+
+{% block body %}
+<h1 class="text-3xl font-bold mb-6">Configurações da IA</h1>
+
+<div class="bg-white p-6 rounded shadow max-w-4xl">
+    <form method="POST">
+        <div class="mb-4">
+            <label class="block font-bold mb-2">Nome do Bot</label>
+            <input type="text" name="nome_bot" value="{{ config.nome_bot }}" class="w-full border p-2 rounded">
+        </div>
+        
+        <div class="mb-4">
+            <label class="block font-bold mb-2">Personalidade e Regras (Prompt do Sistema)</label>
+            <textarea name="personalidade" rows="15" class="w-full border p-2 rounded font-mono text-sm">{{ config.personalidade }}</textarea>
+            <p class="text-xs text-gray-500 mt-1">Este texto define como a IA se comporta. Altere com cuidado.</p>
+        </div>
+
+        <button type="submit" class="bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700">Salvar Alterações</button>
+    </form>
+</div>
+{% endblock %}

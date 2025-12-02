@@ -1,6 +1,7 @@
 import os
 from flask import Flask
-from src.models import db, BotConfig
+from werkzeug.security import generate_password_hash # <--- NOVA IMPORTAÇÃO
+from src.models import db, BotConfig, Usuario # <--- ADICIONEI 'Usuario' AQUI
 from src.main import app
 
 def carregar_texto_prompt():
@@ -22,33 +23,62 @@ def init_database():
     print("🔄 Verificando Banco de Dados...")
     with app.app_context():
         try:
+            # Cria todas as tabelas (BotConfig, Cliente, Mensagem, Produto, USUARIO)
             db.create_all()
             
-            # Verifica se já existe configuração no banco
-            if not BotConfig.query.first():
-                print("⚙️ Banco vazio. Carregando configurações do .env e arquivo txt...")
+            # =========================================
+            # 1. CONFIGURAÇÃO DO BOT (Prompt)
+            # =========================================
+            texto_prompt = carregar_texto_prompt()
+            nome_bot = os.getenv('CHATBOT_NAME', 'Assistente')
+            empresa = os.getenv('COMPANY_NAME', 'Empresa')
+
+            config = BotConfig.query.first()
+            
+            if not config:
+                print("⚙️ Criando configuração inicial do Bot...")
+                config = BotConfig(
+                    nome_bot=nome_bot,
+                    nome_empresa=empresa,
+                    personalidade=texto_prompt
+                )
+                db.session.add(config)
+            else:
+                print("♻️ Atualizando prompt existente...")
+                config.nome_bot = nome_bot
+                config.nome_empresa = empresa
+                config.personalidade = texto_prompt
+            
+            db.session.commit()
+
+            # =========================================
+            # 2. CRIAÇÃO DO ADMIN COM SEGURANÇA (NOVO)
+            # =========================================
+            admin_user = os.getenv('ADMIN_USER', 'admin')
+            
+            # Verifica se já existe esse usuário no banco
+            if not Usuario.query.filter_by(username=admin_user).first():
+                print(f"👤 Criando Super Usuário '{admin_user}'...")
                 
-                # 1. Pega variáveis curtas do .env
-                nome_bot_env = os.getenv('CHATBOT_NAME', 'Assistente')
-                empresa_env = os.getenv('COMPANY_NAME', 'Minha Empresa')
+                # Pega a senha plana do .env
+                senha_plana = os.getenv('ADMIN_SECRET_TOKEN', 'admin')
                 
-                # 2. Pega texto longo do arquivo .txt
-                texto_prompt = carregar_texto_prompt()
+                # TRANSFORMA EM HASH (A mágica acontece aqui)
+                senha_hash = generate_password_hash(senha_plana)
                 
-                # 3. Salva no Banco
-                config_inicial = BotConfig(
-                    nome_bot=nome_bot_env,
-                    nome_empresa=empresa_env,
-                    personalidade=texto_prompt,
-                    regras_negocio="" # Se quiser, pode criar um segundo txt para regras
+                novo_admin = Usuario(
+                    username=admin_user, 
+                    password_hash=senha_hash, # Salva o hash, nunca a senha real
+                    role='admin'
                 )
                 
-                db.session.add(config_inicial)
+                db.session.add(novo_admin)
                 db.session.commit()
-                print(f"✅ Configuração salva para: {nome_bot_env} da {empresa_env}")
-            
+                print("🔒 Admin criado com sucesso (Senha protegida por Hash)!")
             else:
-                print("ℹ️ Configuração já existe no banco. Pulando inicialização.")
+                print("ℹ️ Usuário Admin já existe no banco.")
+                
+            print("✅ Tudo sincronizado!")
 
         except Exception as e:
             print(f"❌ Erro crítico no init_db: {e}")

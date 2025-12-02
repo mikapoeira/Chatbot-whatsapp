@@ -3,3 +3,6 @@
 __pycache__/
 postgres_data/
 *.pyc
+ngrok.exe
+ngrok
+resumo.py

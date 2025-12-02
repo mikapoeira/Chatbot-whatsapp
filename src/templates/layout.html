@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Painel Chatbot</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        .sidebar { width: 250px; height: 100vh; position: fixed; background: #1f2937; color: white; }
+        .content { margin-left: 250px; padding: 20px; background: #f3f4f6; min-height: 100vh; }
+        .nav-item { padding: 12px 20px; display: block; color: #9ca3af; transition: 0.3s; }
+        .nav-item:hover, .nav-item.active { background: #374151; color: white; text-decoration: none; }
+        .nav-item i { width: 25px; }
+    </style>
+</head>
+<body>
+
+    <!-- Sidebar -->
+    <div class="sidebar flex flex-col">
+        <div class="p-6 text-xl font-bold border-b border-gray-700">
+            🤖 Bot Admin
+        </div>
+        <nav class="flex-1 mt-4">
+            <a href="{{ url_for('dashboard') }}" class="nav-item">
+                <i class="fas fa-home"></i> Visão Geral
+            </a>
+            <a href="{{ url_for('conversas') }}" class="nav-item">
+                <i class="fas fa-comments"></i> Conversas
+            </a>
+            <a href="{{ url_for('produtos') }}" class="nav-item">
+                <i class="fas fa-box"></i> Produtos
+            </a>
+            <a href="{{ url_for('configuracoes') }}" class="nav-item">
+                <i class="fas fa-cog"></i> Configurações
+            </a>
+        </nav>
+        <div class="p-4 border-t border-gray-700">
+            <a href="{{ url_for('logout') }}" class="text-red-400 hover:text-red-300">
+                <i class="fas fa-sign-out-alt"></i> Sair
+            </a>
+        </div>
+    </div>
+
+    <!-- Conteúdo Principal -->
+    <div class="content">
+        {% with messages = get_flashed_messages() %}
+            {% if messages %}
+                {% for message in messages %}
+                    <div class="bg-blue-100 border-l-4 border-blue-500 text-blue-700 p-4 mb-4">
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+        
+        {% block body %}{% endblock %}
+    </div>
+
+</body>
+</html>

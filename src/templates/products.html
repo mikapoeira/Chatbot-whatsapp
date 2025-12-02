@@ -1,0 +1,41 @@
+{% extends 'layout.html' %}
+
+{% block body %}
+<div class="flex justify-between items-center mb-6">
+    <h1 class="text-3xl font-bold">Produtos e Serviços</h1>
+    <div class="text-sm text-gray-500">
+        <i class="fas fa-sync"></i> Sincronizado via Automação n8n
+    </div>
+</div>
+
+<div class="bg-white rounded shadow overflow-hidden">
+    <table class="min-w-full">
+        <thead class="bg-gray-100 border-b">
+            <tr>
+                <th class="p-4 text-left">Nome</th>
+                <th class="p-4 text-left">Preço</th>
+                <th class="p-4 text-left">Descrição (Resumo)</th>
+                <th class="p-4 text-center">Status</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for p in produtos %}
+            <tr class="border-b hover:bg-gray-50">
+                <td class="p-4 font-bold">{{ p.nome }}</td>
+                <td class="p-4 text-blue-600">{{ p.preco }}</td>
+                <td class="p-4 text-gray-600 text-sm">{{ p.descricao[:80] }}...</td>
+                <td class="p-4 text-center">
+                    <span class="px-2 py-1 rounded-full text-xs {{ 'bg-green-100 text-green-800' if p.ativo else 'bg-red-100 text-red-800' }}">
+                        {{ 'Ativo' if p.ativo else 'Inativo' }}
+                    </span>
+                </td>
+            </tr>
+            {% else %}
+            <tr>
+                <td colspan="4" class="p-8 text-center text-gray-500">Nenhum produto sincronizado ainda.</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

@@ -1,0 +1,20 @@
+{% extends 'layout.html' %}
+
+{% block body %}
+<h1 class="text-3xl font-bold mb-8">Visão Geral</h1>
+
+<div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+    <div class="bg-white p-6 rounded shadow border-l-4 border-blue-500">
+        <h3 class="text-gray-500">Total de Clientes</h3>
+        <p class="text-3xl font-bold">{{ total_clientes }}</p>
+    </div>
+    <div class="bg-white p-6 rounded shadow border-l-4 border-green-500">
+        <h3 class="text-gray-500">Mensagens Trocadas</h3>
+        <p class="text-3xl font-bold">{{ total_msgs }}</p>
+    </div>
+    <div class="bg-white p-6 rounded shadow border-l-4 border-purple-500">
+        <h3 class="text-gray-500">Produtos no Catálogo</h3>
+        <p class="text-3xl font-bold">{{ total_produtos }}</p>
+    </div>
+</div>
+{% endblock %}

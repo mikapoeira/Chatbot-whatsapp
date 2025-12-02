@@ -30,10 +30,11 @@ class Cliente(db.Model):
 
     id = db.Column(db.Integer, primary_key=True)
     telefone = db.Column(db.String(50), unique=True, nullable=False)
-    nome = db.Column(db.String(100), nullable=True)
+    nome = db.Column(db.String(100), default="Desconhecido")
+    # Novo campo: 'bot' (padrão) ou 'humano' (IA fica quieta)
+    modo = db.Column(db.String(20), default='bot') 
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     
-    # Relacionamento para pegar as mensagens desse cliente
     mensagens = db.relationship('Mensagem', backref='cliente', lazy=True)
 
 # ----------------------------------------------------------------
@@ -59,3 +60,15 @@ class Produto(db.Model):
     descricao = db.Column(db.Text, nullable=False)
     preco = db.Column(db.String(50), nullable=True)
     ativo = db.Column(db.Boolean, default=True)
+
+# ----------------------------------------------------------------
+# TABELA 5: USUÁRIOS DO SISTEMA (ADMIN E EQUIPE)
+# ----------------------------------------------------------------
+class Usuario(db.Model):
+    __tablename__ = 'usuarios'
+
+    id = db.Column(db.Integer, primary_key=True)
+    username = db.Column(db.String(50), unique=True, nullable=False)
+    password_hash = db.Column(db.String(256), nullable=False)
+    role = db.Column(db.String(20), default='admin') # Ex: admin, suporte
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
