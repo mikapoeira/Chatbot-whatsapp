@@ -1,7 +1,7 @@
 import os
 from flask import Flask
-from werkzeug.security import generate_password_hash # <--- NOVA IMPORTAÇÃO
-from src.models import db, BotConfig, Usuario # <--- ADICIONEI 'Usuario' AQUI
+from werkzeug.security import generate_password_hash
+from src.models import db, BotConfig, Usuario # Importe o Usuario!
 from src.main import app
 
 def carregar_texto_prompt():
@@ -60,16 +60,15 @@ def init_database():
             if not Usuario.query.filter_by(username=admin_user).first():
                 print(f"👤 Criando Super Usuário '{admin_user}'...")
                 
-                # Pega a senha plana do .env
                 senha_plana = os.getenv('ADMIN_SECRET_TOKEN', 'admin')
                 
-                # TRANSFORMA EM HASH (A mágica acontece aqui)
+                # TRANSFORMA EM HASH
                 senha_hash = generate_password_hash(senha_plana)
                 
                 novo_admin = Usuario(
                     username=admin_user, 
-                    password_hash=senha_hash, # Salva o hash, nunca a senha real
-                    role='admin'
+                    password_hash=senha_hash, 
+                    role='admin' # <-- ROLE DEFINIDA CORRETAMENTE
                 )
                 
                 db.session.add(novo_admin)

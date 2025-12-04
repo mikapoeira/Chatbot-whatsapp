@@ -1,0 +1,58 @@
+{% extends 'layout.html' %}
+
+{% block body %}
+<h1 class="text-3xl font-bold mb-6">Clientes Cadastrados ({{ clientes | length }})</h1>
+
+{% if session.get('user_role') == 'admin' %}
+    <div class="mb-6 p-4 bg-yellow-100 border-l-4 border-yellow-500">
+        <h2 class="font-bold">Área de Cadastro (Apenas Admin)</h2>
+        <form action="{{ url_for('create_cliente') }}" method="POST" class="mt-3 grid grid-cols-4 gap-4 items-end">
+            <div class="col-span-1">
+                <label class="block text-sm font-medium">Nome</label>
+                <input type="text" name="nome_cliente" class="w-full border p-2 rounded" required>
+            </div>
+            <div class="col-span-1">
+                <label class="block text-sm font-medium">Número (Chave)</label>
+                <input type="text" name="numero_cliente" class="w-full border p-2 rounded" placeholder="Ex: 5511987654321" required>
+            </div>
+            <div class="col-span-1 flex items-center">
+                <input type="checkbox" name="suporte" id="suporte" class="mr-2">
+                <label for="suporte" class="text-sm">Assinatura de Suporte Ativa</label>
+            </div>
+            <div class="col-span-1">
+                <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 w-full">
+                    Cadastrar
+                </button>
+            </div>
+        </form>
+    </div>
+{% endif %}
+
+<div class="bg-white rounded shadow overflow-hidden">
+    <table class="min-w-full">
+        <thead class="bg-gray-100 border-b">
+            <tr>
+                <th class="p-4 text-left">Nome do Cliente</th>
+                <th class="p-4 text-left">Telefone (PK)</th>
+                <th class="p-4 text-center">Suporte Ativo?</th>
+                <th class="p-4 text-left">Custom Data</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for cliente in clientes %}
+            <tr class="border-b hover:bg-gray-50">
+                <td class="p-4 font-bold">{{ cliente.nome_cliente }}</td>
+                <td class="p-4">{{ cliente.numero_cliente }}</td>
+                <td class="p-4 text-center">
+                    <span class="px-2 py-1 rounded-full text-xs {{ 'bg-green-100 text-green-800' if cliente.tem_suporte else 'bg-red-100 text-red-800' }}">
+                        {{ 'SIM' if cliente.tem_suporte else 'NÃO' }}
+                    </span>
+                </td>
+                <td class="p-4 text-gray-600 text-sm">{{ cliente.custom_data if cliente.custom_data else 'N/A' }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+{% endblock %}

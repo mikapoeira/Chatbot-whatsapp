@@ -1,7 +1,6 @@
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy.dialects.postgresql import JSONB
 from datetime import datetime
-import time
 
 # Inicializamos o objeto db aqui (sem import circular)
 db = SQLAlchemy()
@@ -29,13 +28,25 @@ class Cliente(db.Model):
     __tablename__ = 'clientes'
 
     id = db.Column(db.Integer, primary_key=True)
-    telefone = db.Column(db.String(50), unique=True, nullable=False)
-    nome = db.Column(db.String(100), default="Desconhecido")
-    # Novo campo: 'bot' (padrão) ou 'humano' (IA fica quieta)
-    modo = db.Column(db.String(20), default='bot') 
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
     
+    # Campo usado pelo WhatsApp Webhook:
+    telefone = db.Column(db.String(50), unique=True, nullable=False) # <--- Telefone (do Tabela 2/Webhook)
+
+    # Campos usados na tela de Clientes:
+    nome = db.Column(db.String(100), default="Desconhecido") # <--- Nome (do Tabela 2)
+    tem_suporte = db.Column(db.Boolean, default=False)
+    custom_data = db.Column(db.String(255), nullable=True) # <--- Custom Data (do Tabela 6)
+    
+    # Novo campo: 'bot' (padrão) ou 'humano' (do Tabela 2)
+    modo = db.Column(db.String(20), default='bot')
+
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+    # Relação com Mensagens (do Tabela 2)
     mensagens = db.relationship('Mensagem', backref='cliente', lazy=True)
+    
+    def __repr__(self):
+        return f'<Cliente {self.nome}>'
 
 # ----------------------------------------------------------------
 # TABELA 3: MENSAGENS (Histórico)
@@ -65,10 +76,12 @@ class Produto(db.Model):
 # TABELA 5: USUÁRIOS DO SISTEMA (ADMIN E EQUIPE)
 # ----------------------------------------------------------------
 class Usuario(db.Model):
-    __tablename__ = 'usuarios'
-
+    __tablename__ = 'usuario'
     id = db.Column(db.Integer, primary_key=True)
-    username = db.Column(db.String(50), unique=True, nullable=False)
-    password_hash = db.Column(db.String(256), nullable=False)
-    role = db.Column(db.String(20), default='admin') # Ex: admin, suporte
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    username = db.Column(db.String(80), unique=True, nullable=False)
+    password_hash = db.Column(db.String(255), nullable=False)
+    # Role: 'admin' ou 'atendente'. Padrão é 'atendente' (mais restrito).
+    role = db.Column(db.String(20), default='admin') 
+    
+    def __repr__(self):
+        return f'<Usuario {self.username}>'

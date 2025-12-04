@@ -1,22 +1,167 @@
 {% extends 'layout.html' %}
 
 {% block body %}
-<h1 class="text-3xl font-bold mb-6">Configurações da IA</h1>
+<h1 class="text-3xl font-bold mb-6">Configurações do Sistema</h1>
 
-<div class="bg-white p-6 rounded shadow max-w-4xl">
-    <form method="POST">
-        <div class="mb-4">
-            <label class="block font-bold mb-2">Nome do Bot</label>
-            <input type="text" name="nome_bot" value="{{ config.nome_bot }}" class="w-full border p-2 rounded">
-        </div>
-        
-        <div class="mb-4">
-            <label class="block font-bold mb-2">Personalidade e Regras (Prompt do Sistema)</label>
-            <textarea name="personalidade" rows="15" class="w-full border p-2 rounded font-mono text-sm">{{ config.personalidade }}</textarea>
-            <p class="text-xs text-gray-500 mt-1">Este texto define como a IA se comporta. Altere com cuidado.</p>
-        </div>
-
-        <button type="submit" class="bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700">Salvar Alterações</button>
-    </form>
+<div class="tabs mb-4">
+        <a href="#tab-ia" class="px-4 py-2 border-b-2 font-bold hover:text-blue-600">Configuração da IA</a>     
+        <a href="#tab-users" class="px-4 py-2 border-b-2 border-blue-600 font-bold text-blue-600">Gerenciamento de Usuários</a>
 </div>
+
+<div id="tab-users">
+    <div class="bg-white p-6 rounded shadow max-w-4xl">
+        <h2 class="text-xl font-bold mb-4">Criar Novo Usuário</h2>
+        <form action="{{ url_for('create_user') }}" method="POST" class="max-w-md">
+            {% if get_flashed_messages(category_filter=['error']) %}
+                <div class="bg-red-100 border-l-4 border-red-500 text-red-700 p-3 mb-4">
+                    {% for message in get_flashed_messages(category_filter=['error']) %}
+                        {{ message }}
+                    {% endfor %}
+                </div>
+            {% endif %}
+            
+            <div class="mb-4">
+                <label class="block font-bold mb-1">Usuário</label>
+                <input type="text" name="username" class="w-full border p-2 rounded" required>
+            </div>
+            <div class="mb-4">
+                <label class="block font-bold mb-1">Senha Inicial</label>
+                <input type="password" name="password" class="w-full border p-2 rounded" required>
+            </div>
+            
+            <div class="mb-4">
+                <label class="block font-bold mb-1">Confirme a Senha Inicial</label>
+                <input type="password" name="confirm_password" class="w-full border p-2 rounded" required>
+            </div>
+           
+            <div class="mb-6">
+                <label class="block font-bold mb-1">Nível de Acesso (Role)</label>
+                <select name="role" class="w-full border p-2 rounded">
+                    <option value="atendente">Atendente (Conversas, Clientes)</option>
+                    <option value="admin">Administrador (Controle Total)</option>
+                </select>
+            </div>
+            
+            <button type="submit" class="bg-green-600 text-white px-6 py-2 rounded hover:bg-green-700">
+                Cadastrar Usuário
+            </button>
+        </form>
+        <h2 class="text-xl font-bold mb-4 mt-6 border-b pb-2">Alterar Minha Senha</h2>
+        <form action="{{ url_for('change_own_password') }}" method="POST" class="max-w-md">
+            <div class="mb-4">
+                <label class="block font-bold mb-1">Nova Senha</label>
+                <input type="password" name="new_password" class="w-full border p-2 rounded" required>
+            </div>
+            <div class="mb-4">
+                <label class="block font-bold mb-1">Confirme a Nova Senha</label>
+                <input type="password" name="confirm_password" class="w-full border p-2 rounded" required>
+            </div>
+            <button type="submit" class="bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700">
+                Alterar Senha
+            </button>
+        </form>
+
+        <h2 class="text-xl font-bold mt-8 mb-4">Usuários Existentes</h2><h2 class="text-xl font-bold mt-8 mb-4">Usuários Existentes</h2>
+        <div class="bg-gray-50 border rounded p-4">
+            <table class="min-w-full divide-y divide-gray-200">
+                <thead class="bg-gray-100">
+                    <tr>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Usuário</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Nível</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Ações</th>
+                    </tr>
+                </thead>
+                <tbody class="bg-white divide-y divide-gray-200">
+                    {% for u in usuarios %}
+                    <tr>
+                        <td class="px-6 py-4 whitespace-nowrap font-medium text-gray-900">{{ u.username }}</td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full 
+                                {{ 'bg-red-100 text-red-800' if u.role == 'admin' else 'bg-blue-100 text-blue-800' }}">
+                                {{ u.role | upper }}
+                            </span>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                            <button class="text-indigo-600 hover:text-indigo-900 text-sm">Editar</button>
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="3" class="px-6 py-4 text-center text-gray-500">Nenhum usuário cadastrado.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<div id="tab-ia" style="display: none;">
+    <div class="bg-white p-6 rounded shadow max-w-4xl">
+        <h2 class="text-xl font-bold mb-4">Configuração da Personalidade da IA</h2>
+        
+        <form action="{{ url_for('configuracoes') }}" method="POST" class="max-w-xl">
+            <div class="mb-4">
+                <label class="block font-bold mb-1">Nome do Bot</label>
+                <input type="text" name="nome_bot" class="w-full border p-2 rounded" value="{{ config.nome_bot }}" required>
+            </div>
+            
+            <div class="mb-6">
+                <label class="block font-bold mb-1">Prompt/Personalidade Completa</label>
+                <textarea name="personalidade" rows="15" class="w-full border p-2 rounded font-mono text-sm" required>{{ config.personalidade }}</textarea>
+                <p class="text-xs text-gray-500 mt-1">Este conteúdo define a personalidade, regras e a base de conhecimento (que é combinada com os produtos).</p>
+            </div>
+            
+            <button type="submit" class="bg-indigo-600 text-white px-6 py-2 rounded hover:bg-indigo-700">
+                <i class="fas fa-save"></i> Salvar Configurações da IA
+            </button>
+        </form>
+    </div>
+</div>
+
+<script>
+    // Função para controlar a exibição das abas
+    function mudarAba(targetId) {
+        // Esconde todos os conteúdos de abas
+        document.getElementById('tab-users').style.display = 'none';
+        document.getElementById('tab-ia').style.display = 'none';
+        
+        // Remove a classe 'ativa' de todos os links
+        document.querySelectorAll('.tabs a').forEach(link => {
+            link.classList.remove('border-blue-600', 'text-blue-600');
+            link.classList.add('border-transparent');
+        });
+
+        // Exibe o conteúdo da aba alvo
+        const targetElement = document.getElementById(targetId);
+        if (targetElement) {
+            targetElement.style.display = 'block';
+        }
+
+        // Adiciona a classe 'ativa' no link clicado
+        const activeLink = document.querySelector(`.tabs a[href="#${targetId}"]`);
+        if (activeLink) {
+            activeLink.classList.remove('border-transparent');
+            activeLink.classList.add('border-blue-600', 'text-blue-600');
+        }
+    }
+
+    // Inicializa: Determina qual aba abrir ao carregar a página
+    window.onload = function() {
+        const hash = window.location.hash.substring(1) || 'tab-users';
+        mudarAba(hash);
+    };
+
+    // Adiciona evento de clique aos links das abas
+    document.querySelectorAll('.tabs a').forEach(link => {
+        link.addEventListener('click', function(e) {
+            e.preventDefault(); // Evita que a URL mude o scroll
+            const targetId = this.getAttribute('href').substring(1);
+            mudarAba(targetId);
+            // Opcional: Atualiza a URL sem recarregar a página
+            history.pushState(null, null, `#${targetId}`);
+        });
+    });
+</script>
+
 {% endblock %}

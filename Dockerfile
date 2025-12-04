@@ -15,4 +15,4 @@ ENV PYTHONPATH=/app
 
 # --- A MUDANÇA ESTÁ AQUI ---
 # Executa o script de inicialização E DEPOIS (&&) sobe o servidor
-CMD ["sh", "-c", "python src/init_db.py && gunicorn --bind 0.0.0.0:5000 src.main:app"]
+CMD ["sh", "-c", "python src/init_db.py && gunicorn -w 2 --timeout 120 --bind 0.0.0.0:5000 src.main:app"]
