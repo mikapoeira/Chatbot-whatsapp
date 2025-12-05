@@ -6,8 +6,8 @@
     <div class="w-1/3 border-r overflow-y-auto">
         <div class="p-4 bg-gray-100 font-bold border-b">Clientes</div>
         {% for cliente in clientes %}
-        <div onclick="abrirChat"('{{ cliente.id }}', '{{ cliente.telefone }}', '{{ cliente.modo }}')" 
-             class="p-4 border-b hover:bg-gray-50 cursor-pointer flex justify-between">
+        <div onclick="abrirChat('{{ cliente.id }}', '{{ cliente.telefone }}', '{{ cliente.modo }}')" 
+            class="p-4 border-b hover:bg-gray-50 cursor-pointer flex justify-between">
             <div>
                 <i class="fab fa-whatsapp text-green-500"></i> {{ cliente.telefone }}
             </div>
@@ -47,34 +47,69 @@
 let clienteAtual = null;
 
 async function abrirChat(id, tel, modo) {
+    console.log("Abrindo chat para:", id, tel); // DEBUG
     clienteAtual = id;
     document.getElementById('chat-title').innerText = tel;
-    document.getElementById('controles').classList.remove('hidden');
-    carregarMsgs();
+    
+    // Mostra controles
+    const controles = document.getElementById('controles');
+    if(controles) controles.classList.remove('hidden');
+    
+    await carregarMsgs();
 }
 
 async function carregarMsgs() {
     if(!clienteAtual) return;
-    const res = await fetch(`/api/chat/${clienteAtual}`);
-    const msgs = await res.json();
-    
-    const box = document.getElementById('chat-box');
-    box.innerHTML = '';
-    
-    msgs.forEach(m => {
-        let align = m.role === 'user' ? 'justify-start' : 'justify-end';
-        let bg = m.role === 'user' ? 'bg-white' : (m.role === 'human' ? 'bg-blue-100' : 'bg-green-100');
-        let icon = m.role === 'user' ? '' : (m.role === 'human' ? '👨‍💻' : '🤖');
+
+    try {
+        const res = await fetch(`/api/chat/${clienteAtual}`);
         
-        box.innerHTML += `
-            <div class="flex ${align}">
-                <div class="${bg} p-3 rounded-lg shadow max-w-lg text-sm">
-                    <div class="font-bold text-xs text-gray-500 mb-1">${icon} ${m.role} <span class="float-right font-normal ml-2">${m.time}</span></div>
-                    ${m.conteudo}
-                </div>
-            </div>`;
-    });
-    box.scrollTop = box.scrollHeight;
+        if (!res.ok) {
+            console.error("Erro na API:", res.status, res.statusText);
+            alert("Erro ao carregar mensagens. Verifique o console.");
+            return;
+        }
+
+        const msgs = await res.json();
+        console.log("Mensagens recebidas:", msgs); // DEBUG
+
+        const box = document.getElementById('chat-box');
+        box.innerHTML = '';
+        
+        if (msgs.length === 0) {
+            box.innerHTML = '<div class="text-center text-gray-400 p-4">Nenhuma mensagem trocada ainda.</div>';
+            return;
+        }
+
+        msgs.forEach(m => {
+            // Define alinhamento e cores
+            let isUser = m.role === 'user' || m.role === 'cliente'; // Ajuste conforme seu DB salva
+            let align = isUser ? 'justify-start' : 'justify-end';
+            
+            let bg = 'bg-white'; // Padrão user
+            let icon = '';
+            
+            if (m.role === 'model' || m.role === 'bot') {
+                bg = 'bg-green-100';
+                icon = '🤖';
+            } else if (m.role === 'human' || m.role === 'atendente') {
+                bg = 'bg-blue-100';
+                icon = '👨‍💻';
+            }
+
+            box.innerHTML += `
+                <div class="flex ${align}">
+                    <div class="${bg} p-3 rounded-lg shadow max-w-lg text-sm">
+                        <div class="font-bold text-xs text-gray-500 mb-1">${icon} ${m.role} <span class="float-right font-normal ml-2">${m.time}</span></div>
+                        ${m.conteudo}
+                    </div>
+                </div>`;
+        });
+        box.scrollTop = box.scrollHeight;
+
+    } catch (e) {
+        console.error("Erro CRÍTICO no JS:", e);
+    }
 }
 
 async function enviarMsg() {

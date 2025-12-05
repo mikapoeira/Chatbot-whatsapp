@@ -61,7 +61,7 @@
             </button>
         </form>
 
-        <h2 class="text-xl font-bold mt-8 mb-4">Usuários Existentes</h2><h2 class="text-xl font-bold mt-8 mb-4">Usuários Existentes</h2>
+        <h2 class="text-xl font-bold mt-8 mb-4">Usuários Existentes</h2>
         <div class="bg-gray-50 border rounded p-4">
             <table class="min-w-full divide-y divide-gray-200">
                 <thead class="bg-gray-100">
@@ -81,14 +81,20 @@
                                 {{ u.role | upper }}
                             </span>
                         </td>
-                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                            <button class="text-indigo-600 hover:text-indigo-900 text-sm">Editar</button>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 flex space-x-2">
+                            <button onclick="openEditModal('{{ u.id }}', '{{ u.username }}', '{{ u.role }}')" 
+                                    class="text-indigo-600 hover:text-indigo-900 text-sm">
+                                <i class="fas fa-edit"></i> Editar
+                            </button>
+                            
+                            <form action="{{ url_for('delete_user', user_id=u.id) }}" method="POST" onsubmit="return confirm('Tem certeza que deseja excluir o usuário {{ u.username }}? Esta ação é irreversível.');">
+                                <button type="submit" class="text-red-600 hover:text-red-900 text-sm">
+                                    <i class="fas fa-trash"></i> Excluir
+                                </button>
+                            </form>
                         </td>
                     </tr>
                     {% else %}
-                    <tr>
-                        <td colspan="3" class="px-6 py-4 text-center text-gray-500">Nenhum usuário cadastrado.</td>
-                    </tr>
                     {% endfor %}
                 </tbody>
             </table>
@@ -115,6 +121,41 @@
             <button type="submit" class="bg-indigo-600 text-white px-6 py-2 rounded hover:bg-indigo-700">
                 <i class="fas fa-save"></i> Salvar Configurações da IA
             </button>
+        </form>
+    </div>
+</div>
+<div id="editUserModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full" style="display: none;">
+    <div class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
+        <h3 class="text-xl font-bold mb-4">Editar Usuário: <span id="modalUsername"></span></h3>
+        
+        <form id="editUserForm" method="POST">
+            
+            <input type="hidden" id="editUserId">
+            
+            <div class="mb-4">
+                <label class="block font-bold mb-1">Nível de Acesso (Role)</label>
+                <select name="role" id="modalUserRole" class="w-full border p-2 rounded">
+                    <option value="atendente">Atendente</option>
+                    <option value="admin">Administrador</option>
+                </select>
+            </div>
+
+            <div class="mb-6 border-t pt-4">
+                <p class="font-bold mb-2">Alterar Senha (Opcional)</p>
+                <div class="mb-2">
+                    <label class="block text-sm">Nova Senha</label>
+                    <input type="password" name="new_password" id="modalNewPassword" class="w-full border p-2 rounded">
+                </div>
+            </div>
+            
+            <div class="flex justify-end space-x-2">
+                <button type="button" onclick="closeEditModal()" class="bg-gray-300 text-gray-800 px-4 py-2 rounded hover:bg-gray-400">
+                    Cancelar
+                </button>
+                <button type="submit" class="bg-indigo-600 text-white px-4 py-2 rounded hover:bg-indigo-700">
+                    Salvar Alterações
+                </button>
+            </div>
         </form>
     </div>
 </div>

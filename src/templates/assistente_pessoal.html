@@ -1,0 +1,88 @@
+{% extends 'layout.html' %}
+
+{% block body %}
+<h1 class="text-3xl font-bold mb-6"><i class="fas fa-magic"></i> Assistente Pessoal</h1>
+<p class="mb-6 text-gray-600">Comandos:</p>
+<ul class="mb-8 list-disc list-inside text-sm text-gray-500 bg-yellow-50 p-4 rounded border-l-4 border-yellow-500">
+    <li>"Cadastre o cliente 'João Silva' no telefone '551199998888'. Ele tem suporte ativo."</li>
+    <li>"Busque as informações do cliente 'Maria Oliveira'."</li>
+    <li>"Quais produtos temos ativos no catálogo?"</li>
+    <li>"Me dê um resumo sobre o cliente '5511...'"</li>
+</ul>
+
+<div class="flex flex-col h-[65vh] bg-white rounded shadow">
+    <div id="assistant-chat-box" class="flex-1 p-4 overflow-y-auto space-y-4 bg-gray-50">
+        <div class="flex justify-start">
+            <div class="bg-blue-100 p-3 rounded-lg shadow max-w-lg text-sm">
+                <div class="font-bold text-xs text-blue-700 mb-1"><i class="fas fa-robot"></i> Assistente</div>
+                Olá! Sou seu Assistente Pessoal. Como posso te ajudar a gerenciar a base de dados hoje?
+            </div>
+        </div>
+    </div>
+
+    <div class="p-4 border-t bg-white flex">
+        <input type="text" id="assistant-input" class="flex-1 border rounded p-3 mr-2" 
+               placeholder="Pergunte ou comande a IA (Ex: Cadastre cliente X)..."
+               onkeypress="if(event.key === 'Enter') enviarPrompt()">
+        <button onclick="enviarPrompt()" class="bg-green-600 text-white px-6 rounded hover:bg-green-700">
+            Enviar
+        </button>
+    </div>
+</div>
+
+<script>
+    async function enviarPrompt() {
+        const input = document.getElementById('assistant-input');
+        const prompt = input.value.trim();
+        const chatBox = document.getElementById('assistant-chat-box');
+
+        if (!prompt) return;
+
+        // 1. Exibir prompt do usuário
+        chatBox.innerHTML += `
+            <div class="flex justify-end">
+                <div class="bg-green-100 p-3 rounded-lg shadow max-w-lg text-sm">
+                    <div class="font-bold text-xs text-green-700 mb-1"><i class="fas fa-user-tie"></i> Você</div>
+                    ${prompt}
+                </div>
+            </div>
+        `;
+        input.value = '';
+        chatBox.scrollTop = chatBox.scrollHeight;
+
+        // Adiciona um placeholder de loading
+        const loadingMsg = document.createElement('div');
+        loadingMsg.className = 'flex justify-start';
+        loadingMsg.innerHTML = `<div id="loading" class="bg-blue-100 p-3 rounded-lg shadow max-w-lg text-sm">
+            <i class="fas fa-spinner fa-spin"></i> Processando...
+        </div>`;
+        chatBox.appendChild(loadingMsg);
+        chatBox.scrollTop = chatBox.scrollHeight;
+
+
+        // 2. Chamar a API do Flask
+        const res = await fetch('/api/assistente_pessoal', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({ prompt: prompt })
+        });
+        const data = await res.json();
+        
+        // 3. Remover loading e exibir resposta da IA
+        document.getElementById('loading').remove();
+        
+        // A resposta da IA
+        const respostaIA = data.resposta;
+        
+        chatBox.innerHTML += `
+            <div class="flex justify-start">
+                <div class="bg-blue-100 p-3 rounded-lg shadow max-w-lg text-sm whitespace-pre-wrap">
+                    <div class="font-bold text-xs text-blue-700 mb-1"><i class="fas fa-robot"></i> Assistente</div>
+                    ${respostaIA}
+                </div>
+            </div>
+        `;
+        chatBox.scrollTop = chatBox.scrollHeight;
+    }
+</script>
+{% endblock %}

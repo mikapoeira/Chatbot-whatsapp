@@ -39,10 +39,13 @@
             </tr>
         </thead>
         <tbody>
+            <tbody>
             {% for cliente in clientes %}
             <tr class="border-b hover:bg-gray-50">
-                <td class="p-4 font-bold">{{ cliente.nome_cliente }}</td>
-                <td class="p-4">{{ cliente.numero_cliente }}</td>
+                <td class="p-4 font-bold">{{ cliente.nome }}</td>
+                
+                <td class="p-4">{{ cliente.telefone }}</td>
+                
                 <td class="p-4 text-center">
                     <span class="px-2 py-1 rounded-full text-xs {{ 'bg-green-100 text-green-800' if cliente.tem_suporte else 'bg-red-100 text-red-800' }}">
                         {{ 'SIM' if cliente.tem_suporte else 'NÃO' }}

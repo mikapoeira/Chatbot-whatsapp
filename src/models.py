@@ -14,6 +14,7 @@ class BotConfig(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     nome_bot = db.Column(db.String(50), default="Assistente")
     nome_empresa = db.Column(db.String(100), default="Minha Empresa")
+    saldo_tokens = db.Column(db.Integer, default=1000)
     
     # Aqui fica o texto gigante que veio do system_prompt.txt
     personalidade = db.Column(db.Text, nullable=False)
